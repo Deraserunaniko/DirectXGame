@@ -421,7 +421,7 @@ Vector3& operator/=(Vector3& v, float s) {
 	return v;
 }
 
-//Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm) {
+// Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm) {
 //	Matrix4x4 result{};
 //
 //	for (size_t i = 0; i < 4; i++) {
@@ -433,16 +433,16 @@ Vector3& operator/=(Vector3& v, float s) {
 //	}
 //	lhm = result;
 //	return lhm;
-//}
+// }
 
-//Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
+// Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
 //	Matrix4x4 result = m1;
 //
 //	return result *= m2;
-//}
+// }
 
 Vector3 operator+(const Vector3& v1, const Vector3& v2) {
-	Vector3 temp(v1); 
+	Vector3 temp(v1);
 	return temp += v2;
 }
 
@@ -474,7 +474,6 @@ Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
 float Lerp(float x1, float x2, float t) { return (1.0f - t) * x1 + t * x2; }
 
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) { return Vector3(Lerp(v1.x, v2.x, t), Lerp(v1.y, v2.y, t), Lerp(v1.z, v2.z, t)); }
-
 
 bool IsCollision(const AABB& aabb1, const AABB& aabb2) {
 	return (aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x) && // x軸

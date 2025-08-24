@@ -6,10 +6,9 @@ using namespace KamataEngine;
 /// <summary>
 /// フェード
 /// </summary>
-class Fade 
-{
+class Fade {
 
-	public:
+public:
 	// 02_13 16枚目 フェードの状態
 	enum class Status {
 		None,    // フェードなし
@@ -40,5 +39,4 @@ private:
 	float duration_ = 0.0f;
 	// 02_13 17枚目 経過時間カウンター
 	float counter_ = 0.0f;
-
 };

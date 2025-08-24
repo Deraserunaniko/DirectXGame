@@ -1,6 +1,6 @@
-#include <numbers>
 #include "TitleScene.h"
 #include "Math.h"
+#include <numbers>
 
 TitleScene::~TitleScene() {
 	delete modelPlayer_;
@@ -37,7 +37,7 @@ void TitleScene::Initialize() {
 	fade_ = new Fade();
 	fade_->Initialize();
 
-		// 02_13 22枚目
+	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 5.0f);
 }
 
@@ -67,7 +67,7 @@ void TitleScene::Update() {
 	}
 	// 02_12 27枚目
 	/*if (Input::GetInstance()->PushKey(DIK_SPACE)) {
-		finished_ = true;
+	    finished_ = true;
 	}*/
 
 	counter_ += 1.0f / 60.0f;
@@ -83,7 +83,6 @@ void TitleScene::Update() {
 
 	// アフィン変換～DirectXに転送(タイトル座標)
 	upData->WorldTransformUpData(worldTransformPlayer_);
-
 }
 
 void TitleScene::Draw() {
@@ -98,6 +97,6 @@ void TitleScene::Draw() {
 	modelPlayer_->Draw(worldTransformPlayer_, camera_);
 	Model::PostDraw();
 
-	//02_13 13枚目
+	// 02_13 13枚目
 	fade_->Draw();
 }

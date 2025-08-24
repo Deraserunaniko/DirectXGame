@@ -1,28 +1,26 @@
 #pragma once
-#include <KamataEngine.h>
+#include "CameraController.h"
+#include "DeathParticles.h"
+#include "Enemy.h"
+#include "Fade.h"
+#include "MapChipField.h"
 #include "Player.h"
 #include "Skydome.h"
-#include "MapChipField.h"
-#include "CameraController.h"
-#include "Enemy.h"
-#include "DeathParticles.h"
-#include "Fade.h"
 #include "UpData.h"
+#include <KamataEngine.h>
 
 using namespace KamataEngine;
 
-//ゲームシーン
-class GameScene 
-{
+// ゲームシーン
+class GameScene {
 public:
-
-	//初期化
+	// 初期化
 	void Initialize();
 
-	//更新
+	// 更新
 	void Update();
 
-	//描画
+	// 描画
 	void Draw();
 
 	~GameScene();
@@ -50,8 +48,6 @@ private:
 	// 02_12 4枚目 ゲームの現在フェーズ（変数）
 	Phase phase_;
 
-	
-
 	////テクスチャーハンドル
 	uint32_t textureHandle_ = 0;
 
@@ -60,11 +56,10 @@ private:
 	//////3Dモデル
 	Model* model_ = nullptr;
 
-	//ブロックの3Dモデル
+	// ブロックの3Dモデル
 	Model* blockModel_ = nullptr;
 
 	WorldTransform worldTransform_;
-	
 
 	////カメラ
 	Camera camera_;
@@ -79,15 +74,14 @@ private:
 	// 02_09 10枚目 エネミークラス
 	Enemy* enemy_ = nullptr;
 
+	// Math* math_ = nullptr;
 
-	//Math* math_ = nullptr;
-
-	//デバッグカメラ有効
+	// デバッグカメラ有効
 	bool isDebugCameraActive_ = false;
 
 	Skydome* skydome_ = nullptr;
 
-	Model*modelSkydome_ = nullptr;
+	Model* modelSkydome_ = nullptr;
 
 	Model* modelPlayer_ = nullptr;
 
@@ -112,5 +106,3 @@ private:
 
 	UpData* upData = nullptr;
 };
-
-

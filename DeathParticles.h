@@ -2,10 +2,10 @@
 
 #include "KamataEngine.h"
 #include "Math.h"
+#include "UpData.h"
 #include <algorithm>
 #include <array>
 #include <numbers>
-#include "UpData.h"
 
 using namespace KamataEngine;
 

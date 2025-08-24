@@ -1,14 +1,11 @@
 #pragma once
-#include <KamataEngine.h>
 #include "Math.h"
+#include <KamataEngine.h>
 
 class UpData {
 
 public:
-
 	void WorldTransformUpData(KamataEngine::WorldTransform& worldTransform);
 
-
-
-	//Math math_;
+	// Math math_;
 };

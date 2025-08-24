@@ -36,7 +36,7 @@ GameScene::~GameScene() {
 
 void GameScene::Initialize() {
 	// ここにインゲームの初期化処理を書く
-	//textureHandle_ = TextureManager::Load("player.png");
+	// textureHandle_ = TextureManager::Load("player.png");
 
 	////スプライトインスタンスの生成
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
@@ -51,7 +51,6 @@ void GameScene::Initialize() {
 	blockModel_ = Model::CreateFromOBJ("block");
 
 	debugCamera_ = new DebugCamera(WinApp::kWindowWidth, WinApp::kWindowHeight);
-
 
 	camera_.farZ = 1000.0f;
 
@@ -81,7 +80,6 @@ void GameScene::Initialize() {
 
 	// 自キャラの初期化
 	player_->Initialize(modelPlayer_, &camera_, playerPosition);
-
 
 	CController_ = new CameraController(); // 生成
 
@@ -283,7 +281,8 @@ void GameScene::Update() {
 		for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 			for (WorldTransform*& worldTransformBlock : worldTransformBlockLine) {
 
-				if (!worldTransformBlock)continue;
+				if (!worldTransformBlock)
+					continue;
 
 				// アフィン変換～DirectXに転送
 				upData->WorldTransformUpData(*worldTransformBlock);
@@ -296,7 +295,6 @@ void GameScene::Update() {
 
 		//   skydome生成
 		skydome_->Update();
-
 
 		CController_->Updata();
 

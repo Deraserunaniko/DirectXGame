@@ -3,13 +3,12 @@
 
 using namespace KamataEngine;
 
-class Skydome 
-{
+class Skydome {
 public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(Model* model,Camera*camera_);
+	void Initialize(Model* model, Camera* camera_);
 
 	/// <summary>
 	/// 更新
@@ -22,12 +21,11 @@ public:
 	void Draw();
 
 private:
-
-	//ワールド変換データ
+	// ワールド変換データ
 	WorldTransform worldTransform_;
 
-	//モデル
+	// モデル
 	Model* model_ = nullptr;
 
-	Camera *camera_=nullptr;
+	Camera* camera_ = nullptr;
 };

@@ -48,5 +48,4 @@ private:
 	Phase phase_ = Phase::kFadeIn;
 
 	UpData* upData = nullptr;
-
 };
