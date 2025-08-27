@@ -110,7 +110,7 @@ void GameScene::Initialize() {
 	for (int32_t i = 0; i < 6; ++i) {
 		Enemy* newEnemy = new Enemy();
 
-		Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(14 + i * 7, 18);
+		Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(25 + i * 10, 18);
 
 		newEnemy->Initialize(enemy_model_, &camera_, enemyPosition);
 

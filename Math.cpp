@@ -1,4 +1,5 @@
 #include "Math.h"
+#include <cassert>
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result = {};
 
