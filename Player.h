@@ -4,7 +4,6 @@
 #include "MapChipField.h"
 #include "Math.h"
 #include "UpData.h"
-
 #include <algorithm>
 #include <cassert>
 #include <numbers>
@@ -27,10 +26,26 @@ public:
 	// 角 02_07スライド16枚目
 	enum Corner { kRightBottom, kLeftBottom, kRightTop, kLeftTop, kNumCorner };
 
+	// 02_14 11枚目 振るまい
+	enum class Behavior {
+		kUnknown = -1,
+		kRoot,   // 通常状態
+		kAttack, // 攻撃中
+	};
+
+	// 02_14 24枚目 攻撃フェーズ
+	enum class AttackPhase {
+		kUnknown = -1, // 無効な状態
+
+		kAnticipation, // 予備動作
+		kAction,       // 前進動作
+		kRecovery,     // 余韻動作
+	};
+
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize(Model* model_, Camera* camera_, const Vector3& position);
+	void Initialize(Model* model_, Model* modelAttack, Camera* camera_, const Vector3& position);
 
 	/// <summary>
 	/// 更新
@@ -63,12 +78,30 @@ public:
 	// 02_12 11枚目 デスフラグ
 	bool IsDead() const { return isDead_; }
 
+	// 通常行動更新
+	//  02_14 6枚目 通常行動更新
+	void BehavoirRootUpdate();
+
+	// 02_14 8枚目 攻撃行動更新
+	void BehaviorAttackUpdate();
+
+	// 02_14 16枚目 通常行動初期化
+	void BehaviorRootInitialize();
+
+	// 02_14 16枚目 攻撃行動初期化
+	void BehaviorAttackInitialize();
+
+	// 02_15 14枚目
+	bool IsAttack() const { return behavior_ == Behavior::kAttack && attackPhase_ == AttackPhase::kAction; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
 
 	// モデル
 	Model* model_ = nullptr;
+
+	Model* modelAttack_ = nullptr;
 
 	// テクスチャハンドル
 	//  uint32_t textureHandle_ = 0u;
@@ -173,4 +206,24 @@ private:
 
 	// 02_12 11枚目 デスフラグ
 	bool isDead_ = false;
+
+	// 02_14 11枚目 振るまい
+	Behavior behavior_ = Behavior::kRoot;
+
+	// 02_14 14枚目 次の振るまいリクエスト
+	Behavior behaviorRequest_ = Behavior::kUnknown;
+
+	// 02_14 19枚目 攻撃ギミックの経過時間カウンター
+	uint32_t attackParameter_ = 0;
+
+	// 02_14 24枚目 攻撃フェーズ
+	AttackPhase attackPhase_ = AttackPhase::kUnknown;
+
+	// 02_14 26枚目 予備動作の時間
+	static inline const uint32_t kAnticipationTime = 8;
+	// 02_14 26枚目 前進動作の時間
+	static inline const uint32_t kActionTime = 5;
+	// 02_14 26枚目 余韻動作の時間
+	static inline const uint32_t kRecoveryTime = 12;
+	WorldTransform worldTransformAttack_;
 };

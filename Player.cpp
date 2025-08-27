@@ -1,19 +1,253 @@
 #define NOMINMAX
 #include "Player.h"
-#include "MapChipField.h"
-#include "Math.h"
-#include "UpData.h"
-#include <algorithm>
-#include <cassert>
-#include <numbers>
+
 
 using namespace KamataEngine;
 
-void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
+void Player::UpDate() {
+
+	// 02_14 15枚目
+	if (behaviorRequest_ != Behavior::kUnknown) {
+		// 振るまいを変更する
+		behavior_ = behaviorRequest_;
+
+		// 各振るまいごとの初期化を実行
+		switch (behavior_) {
+		case Behavior::kRoot:
+		default:
+			BehaviorRootInitialize();
+			break;
+		case Behavior::kAttack:
+			BehaviorAttackInitialize();
+			break;
+		}
+
+		// 振るまいリクエストをリセット
+		behaviorRequest_ = Behavior::kUnknown;
+	}
+
+	// 02_14 17枚目
+	switch (behavior_) {
+	case Behavior::kRoot:
+	default:
+		BehavoirRootUpdate();
+		break;
+	case Behavior::kAttack:
+		BehaviorAttackUpdate();
+		break;
+	}
+
+	// 02_14 8枚目 行列計算
+	upData->WorldTransformUpData(worldTransform_);
+	upData->WorldTransformUpData(worldTransformAttack_);
+
+#pragma region 前のプレイヤーの動き
+	// bool landing = false;
+
+	//// 下降あり？
+	// if (velocity_.y < 0) {
+	//	// Y座標が地面以下になったら着地
+	//	if (worldTransform_.translation_.y <= 1.0f) {
+	//		landing = true;
+	//	}
+	// }
+
+	//// 接地状態
+
+	//// 接地判定
+	// if (onGround_) {
+	//	// ジャンプ開始
+	//	if (velocity_.y > 0.0f) {
+	//		onGround_ = false;
+	//	}
+	// } else {
+	//	// 着地
+	//	if (landing) {
+	//		worldTransform_.translation_.y = 1.0f;
+	//		velocity_.x *= (1.0f - kAttenuation);
+	//		velocity_.y = 0.0f;
+	//		onGround_ = true;
+	//	}
+	// }
+#pragma endregion
+}
+
+// 02_14 16枚目 通常行動初期化
+void Player::BehaviorRootInitialize() {}
+
+void Player::BehavoirRootUpdate() {
+
+	// 移動入力(02_07 スライド10枚目)
+	InputMove();
+
+	// 移動入力
+	// 衝突情報を初期化
+	// 衝突情報を初期化(02_07 スライド13枚目)
+	CollisionMapInfo collisionMapInfo = {};
+	collisionMapInfo.move = velocity_;
+	collisionMapInfo.landing = false;
+	collisionMapInfo.hitWall = false;
+	// 移動量に速度の値をコピー
+	//  マップ衝突チェック(02_07 スライド13枚目)
+	CheckMapCollision(collisionMapInfo);
+
+	// worldTransform_.translation_ = Add(velocity_, worldTransform_.translation_);
+
+	// 移動(02_07 スライド36枚目)
+	worldTransform_.translation_ += collisionMapInfo.move;
+
+	// 天井接触による落下開始(02_07 スライド38枚目)
+	if (collisionMapInfo.ceiling) {
+		velocity_.y = 0;
+	}
+
+	// 02_08 スライド27枚目 壁接触している場合の処理
+	UpdateOnWall(collisionMapInfo);
+
+	// 接地判定
+	UpdateOnGround(collisionMapInfo);
+
+	//旋回制御
+	if (turnTimer_ > 0.0f) {
+		// タイマーを進める
+		turnTimer_ = std::max(turnTimer_ - (1.0f / 60.0f), 0.0f);
+
+		float destinationRotationYTable[] = {std::numbers::pi_v<float> / 2.0f, std::numbers::pi_v<float> * 3.0f / 2.0f};
+
+		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
+
+		worldTransform_.rotation_.y = EaseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
+	}
+
+	// 02_14 18枚目 攻撃キーを押したら
+	if (Input::GetInstance()->TriggerKey(DIK_E)) {	
+		// 攻撃ビヘイビアをリクエスト
+		behaviorRequest_ = Behavior::kAttack;
+	}
+}
+
+// 02_14 16枚目 攻撃行動初期化
+void Player::BehaviorAttackInitialize() {
+
+	// 02_14 19枚目 カウンター初期化
+	attackParameter_ = 0;
+
+	velocity_ = {};
+
+	// 溜めフェーズから始める
+	attackPhase_ = AttackPhase::kAnticipation;
+}
+
+// 02_14 8枚目 攻撃行動更新
+void Player::BehaviorAttackUpdate() {
+
+	// 02_14 19枚目 予備動作 → 25枚目で削除
+	//	attackParameter_++;
+
+	// 02_14 19枚目 既定の時間経過で攻撃終了して通常状態に戻す → 25枚目で削除
+	//	if (attackParameter_ >= 20.0f) {
+	//		behaviorRequest_ = Behavior::kRoot;
+	//	}
+
+	// 02_14 29枚目
+	const Vector3 attackVelocity = {0.8f, 0.0f, 0.0f};
+
+	// 02_14 291枚目 攻撃動作用の速度
+	Vector3 velocity{};
+
+	// 02_14 19枚目 予備動作
+	attackParameter_++;
+
+	switch (attackPhase_) {
+	case AttackPhase::kAnticipation: // 溜め動作
+	// 02_14 26枚目
+	default: {
+		velocity = {};
+		float t = static_cast<float>(attackParameter_) / kAnticipationTime;
+		worldTransform_.scale_.z = EaseOut(1.0f, 0.3f, t);
+		worldTransform_.scale_.y = EaseOut(1.0f, 1.6f, t);
+
+		// 前進動作へ移行
+		if (attackParameter_ >= kAnticipationTime) {
+			attackPhase_ = AttackPhase::kAction;
+			attackParameter_ = 0; // カウンターをリセット
+		}
+		break;
+	}
+
+	// 02_14 27枚目
+	case AttackPhase::kAction: { // 突進動作
+		if (lrDirection_ == LRDirection::kRight) {
+			velocity += attackVelocity;
+		} else {
+			velocity -= attackVelocity;
+		}
+
+		float t = static_cast<float>(attackParameter_) / kActionTime;
+		worldTransform_.scale_.z = EaseOut(0.3f, 1.3f, t);
+		worldTransform_.scale_.y = EaseIn(1.6f, 0.7f, t);
+
+		// 余韻動作へ移行
+		if (attackParameter_ >= kActionTime) {
+			attackPhase_ = AttackPhase::kRecovery;
+			attackParameter_ = 0; // パラメータをリセット
+		}
+	} 
+	break;
+	// 02_14 28枚目
+	case AttackPhase::kRecovery: { // 余韻動作
+		velocity = {};
+		float t = static_cast<float>(attackParameter_) / kRecoveryTime;
+		worldTransform_.scale_.z = EaseInOut(1.3f, 1.0f, t);
+		worldTransform_.scale_.y = EaseInOut(0.7f, 1.0f, t);
+
+		// 通常行動に戻る
+		if (attackParameter_ >= kRecoveryTime) {
+			behaviorRequest_ = Behavior::kRoot;
+		}
+		break;
+	}
+	}
+
+	// 衝突情報を初期化
+	CollisionMapInfo collisionMapInfo = {};
+	collisionMapInfo.move = velocity;
+	collisionMapInfo.landing = false;
+	collisionMapInfo.hitWall = false;
+
+	// マップ衝突チェック
+	CheckMapCollision(collisionMapInfo);
+
+	// 移動
+	worldTransform_.translation_ += collisionMapInfo.move;
+
+	if (turnTimer_ > 0.0f) {
+		// タイマーを進める
+		turnTimer_ = std::max(turnTimer_ - (1.0f / 60.0f), 0.0f);
+
+		float destinationRotationYTable[] = {std::numbers::pi_v<float> / 2.0f, std::numbers::pi_v<float> * 3.0f / 2.0f};
+
+		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
+
+		worldTransform_.rotation_.y = EaseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
+	}
+
+	worldTransformAttack_.translation_ = worldTransform_.translation_;
+	worldTransformAttack_.rotation_ = worldTransform_.rotation_;
+}
+
+void Player::Initialize(Model* model, Model* modelAttack, Camera* camera, const Vector3& position) {
 	assert(model);
 
 	model_ = model;
+	modelAttack_ = modelAttack;
 	camera_ = camera;
+
+	worldTransformAttack_.Initialize();
+
+	worldTransformAttack_.translation_ = position;
+
+	worldTransformAttack_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 
 	worldTransform_.Initialize();
 
@@ -26,10 +260,10 @@ void Player::InputMove() {
 	if (onGround_) {
 
 		// 左右操作
-		if (Input::GetInstance()->PushKey(DIK_RIGHT) || Input::GetInstance()->PushKey(DIK_LEFT)) {
+		if (Input::GetInstance()->PushKey(DIK_D) || Input::GetInstance()->PushKey(DIK_A)) {
 			// 左右加速
 			Vector3 acceleration = {};
-			if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+			if (Input::GetInstance()->PushKey(DIK_D)) {
 				if (velocity_.x < 0.0f) {
 					velocity_.x *= (1.0f - kAttenuation);
 				}
@@ -41,7 +275,7 @@ void Player::InputMove() {
 					turnTimer_ = kTimeTurn;
 				}
 
-			} else if (Input::GetInstance()->PushKey(DIK_LEFT)) {
+			} else if (Input::GetInstance()->PushKey(DIK_A)) {
 				if (velocity_.x > 0.0f) {
 					velocity_.x *= (1.0f - kAttenuation);
 				}
@@ -66,7 +300,7 @@ void Player::InputMove() {
 			velocity_.x = 0.0f;
 		}
 
-		if (Input::GetInstance()->PushKey(DIK_UP)) {
+		if (Input::GetInstance()->PushKey(DIK_W)) {
 			// ジャンプ初速
 			velocity_ = Add(Vector3(0, kJumpAcceleration / 60.0f, 0), velocity_);
 		}
@@ -364,85 +598,19 @@ Vector3 Player::CornerPosition(const Vector3& center, Corner corner) {
 	return center + offsetTable[static_cast<uint32_t>(corner)];
 }
 
-void Player::UpDate() {
-
-	// 移動入力(02_07 スライド10枚目)
-	InputMove();
-
-	// 移動入力
-	// 衝突情報を初期化
-	CollisionMapInfo collisionMapInfo = {};
-	collisionMapInfo.move = velocity_;
-	// 移動量に速度の値をコピー
-	//  マップ衝突チェック(02_07 スライド13枚目)
-	CheckMapCollision(collisionMapInfo);
-
-	// worldTransform_.translation_ = Add(velocity_, worldTransform_.translation_);
-
-	// 移動(02_07 スライド36枚目)
-	worldTransform_.translation_ += collisionMapInfo.move;
-
-	// 天井接触による落下開始(02_07 スライド38枚目)
-	if (collisionMapInfo.ceiling) {
-		velocity_.y = 0;
+void Player::Draw() { 
+	model_->Draw(worldTransform_, *camera_); 
+	if (behavior_ == Behavior::kAttack) {
+		switch (attackPhase_) {
+		case AttackPhase::kAnticipation:
+			break;
+		case AttackPhase::kAction:
+		case AttackPhase::kRecovery:
+			modelAttack_->Draw(worldTransformAttack_, *camera_);
+			break;
+		}
 	}
-
-	// 02_08 スライド27枚目 壁接触している場合の処理
-	UpdateOnWall(collisionMapInfo);
-
-	// 接地判定
-	UpdateOnGround(collisionMapInfo);
-
-	// bool landing = false;
-
-	//// 下降あり？
-	// if (velocity_.y < 0) {
-	//	// Y座標が地面以下になったら着地
-	//	if (worldTransform_.translation_.y <= 1.0f) {
-	//		landing = true;
-	//	}
-	// }
-
-	//// 接地状態
-
-	//// 接地判定
-	// if (onGround_) {
-	//	// ジャンプ開始
-	//	if (velocity_.y > 0.0f) {
-	//		onGround_ = false;
-	//	}
-	// } else {
-	//	// 着地
-	//	if (landing) {
-	//		worldTransform_.translation_.y = 1.0f;
-	//		velocity_.x *= (1.0f - kAttenuation);
-	//		velocity_.y = 0.0f;
-	//		onGround_ = true;
-	//	}
-	// }
-
-	// 旋回制御
-	if (turnTimer_ > 0.0f) {
-		// タイマーを進める
-		turnTimer_ = std::max(turnTimer_ - (1.0f / 60.0f), 0.0f);
-
-		float destinationRotationYTable[] = {std::numbers::pi_v<float> / 2.0f, std::numbers::pi_v<float> * 3.0f / 2.0f};
-
-		float destinationRotationY = destinationRotationYTable[static_cast<uint32_t>(lrDirection_)];
-
-		worldTransform_.rotation_.y = EaseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
-	}
-
-	upData->WorldTransformUpData(worldTransform_);
 }
-
-//// アフィン変換行列の生成
-// worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
-
-//// 定数バッファに転送する
-// worldTransform_.TransferMatrix();
-
-void Player::Draw() { model_->Draw(worldTransform_, *camera_); }
 
 // 02_10 10枚目
 Vector3 Player::GetWorldPosition() {
@@ -470,6 +638,12 @@ AABB Player::GetAABB() {
 
 // 02_10 21枚目
 void Player::OnCollision(const Enemy* enemy) {
+
+		// 02_15 20枚目
+	if (IsAttack()) {
+		return; // 攻撃中はダメージ無効
+	}
+
 	(void)enemy;
 
 	// 02_12 12枚目 書き換え

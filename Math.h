@@ -66,6 +66,11 @@ Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
 
 // イージング
+
+float EaseIn(float x1, float x2, float t);
+
+float EaseOut(float x1, float x2, float t);
+
 float EaseInOut(float start, float end, float t);
 
 Vector3& operator+=(Vector3& lhv, const Vector3& rhv);
@@ -95,4 +100,7 @@ struct AABB {
 
 bool IsCollision(const AABB& aabb1, const AABB& aabb2);
 
+// 02_15 で追加
+inline float ToRadians(float degrees) { return degrees * (3.1415f / 180.0f); }
+inline float ToDegrees(float radians) { return radians * (180.0f / 3.1415f); }
 //}

@@ -387,6 +387,18 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
+float EaseIn(float x1, float x2, float t) {
+	float easedT = t * t;
+
+	return Lerp(x1, x2, easedT);
+}
+
+float EaseOut(float x1, float x2, float t) {
+	float easedT = 1.0f - std::powf(1.0f - t, 3.0f);
+
+	return Lerp(x1, x2, easedT);
+}
+
 float EaseInOut(float start, float end, float t) {
 	// tは0.0～1.0の範囲
 	t = t * t * (3.0f - 2.0f * t); // スムーズステップ

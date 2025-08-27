@@ -85,6 +85,8 @@ private:
 
 	Model* modelPlayer_ = nullptr;
 
+	Model* modelAttack_ = nullptr;
+
 	Model* enemy_model_ = nullptr;
 
 	MapChipField* mapChipField_;

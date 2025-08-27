@@ -26,10 +26,50 @@ void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	velocity_ = {-kWalkSpeed, 0, 0};
 	// 02_09 20枚目
 	walkTimer = 0.0f;
+
+	isDead_ = false;
 }
 
 // 02_09 スライド5枚目
 void Enemy::UpDate() {
+
+	if (behaviorRequest_ != Behavior::kUnknown) {
+		behavior_ = behaviorRequest_;
+		switch (behavior_) {
+		case Behavior::kDefeated:
+		default:
+			counter_ = 0;
+			break;
+		}
+
+		// 振るまいリクエストをリセット
+		behaviorRequest_ = Behavior::kUnknown;
+	}
+
+	// 02_15 13枚目
+	switch (behavior_) {
+	// 歩行
+	case Behavior::kWalk:
+		worldTransform_.translation_ += velocity_;
+		walkTimer += 1.0f / 60.0f;
+		worldTransform_.rotation_.x = std::sin(std::numbers::pi_v<float> * 2.0f * walkTimer / kWalkMotionTime);
+		upData->WorldTransformUpData(worldTransform_);
+		break;
+	// やられ
+	case Behavior::kDefeated:
+		// 02_15 15枚目
+		counter_ += 1.0f / 60.0f;
+
+		worldTransform_.rotation_.y += 0.9f;
+		worldTransform_.rotation_.x = EaseOut(ToRadians(kDefeatedMotionAngleStart), ToRadians(kDefeatedMotionAngleEnd), counter_ / kDefeatedTime);
+		
+		upData->WorldTransformUpData(worldTransform_);
+
+		if (counter_ >= kDefeatedTime) {
+			isDead_ = true;
+		}
+		break;
+	}
 
 	// 02_09 16枚目 移動
 	worldTransform_.translation_ += velocity_;
@@ -83,4 +123,20 @@ Vector3 Enemy::GetWorldPosition() {
 }
 
 // 02_10 スライド20枚目
-void Enemy::OnCollision(const Player* player) { (void)player; }
+void Enemy::OnCollision(const Player* player) {
+
+	if (behavior_ == Behavior::kDefeated) {
+		// 敵がやられているなら何もしない
+		return;
+	}
+
+	// プレイヤーが攻撃中なら敵が死ぬ
+	// player.hをインクルード
+	if (player->IsAttack()) {
+		// 敵の振るまいをやられに変更
+		behaviorRequest_ = Behavior::kDefeated;
+
+		// 02_15 20枚目 衝突を無効化
+		isCollisionDisabled_ = true;
+	}
+}
