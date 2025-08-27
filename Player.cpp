@@ -6,7 +6,7 @@ using namespace KamataEngine;
 
 void Player::UpDate() {
 
-	// 02_14 15枚目
+
 	if (behaviorRequest_ != Behavior::kUnknown) {
 		// 振るまいを変更する
 		behavior_ = behaviorRequest_;
@@ -26,7 +26,7 @@ void Player::UpDate() {
 		behaviorRequest_ = Behavior::kUnknown;
 	}
 
-	// 02_14 17枚目
+
 	switch (behavior_) {
 	case Behavior::kRoot:
 	default:
@@ -37,71 +37,45 @@ void Player::UpDate() {
 		break;
 	}
 
-	// 02_14 8枚目 行列計算
+	// 行列計算
 	upData->WorldTransformUpData(worldTransform_);
 	upData->WorldTransformUpData(worldTransformAttack_);
 
 #pragma region 前のプレイヤーの動き
-	// bool landing = false;
-
-	//// 下降あり？
-	// if (velocity_.y < 0) {
-	//	// Y座標が地面以下になったら着地
-	//	if (worldTransform_.translation_.y <= 1.0f) {
-	//		landing = true;
-	//	}
-	// }
-
-	//// 接地状態
-
-	//// 接地判定
-	// if (onGround_) {
-	//	// ジャンプ開始
-	//	if (velocity_.y > 0.0f) {
-	//		onGround_ = false;
-	//	}
-	// } else {
-	//	// 着地
-	//	if (landing) {
-	//		worldTransform_.translation_.y = 1.0f;
-	//		velocity_.x *= (1.0f - kAttenuation);
-	//		velocity_.y = 0.0f;
-	//		onGround_ = true;
-	//	}
-	// }
+	
 #pragma endregion
 }
 
-// 02_14 16枚目 通常行動初期化
+//  通常行動初期化
 void Player::BehaviorRootInitialize() {}
 
 void Player::BehavoirRootUpdate() {
 
-	// 移動入力(02_07 スライド10枚目)
+	// 移動入力
 	InputMove();
 
 	// 移動入力
 	// 衝突情報を初期化
-	// 衝突情報を初期化(02_07 スライド13枚目)
+	// 衝突情報を初期化
 	CollisionMapInfo collisionMapInfo = {};
 	collisionMapInfo.move = velocity_;
 	collisionMapInfo.landing = false;
 	collisionMapInfo.hitWall = false;
 	// 移動量に速度の値をコピー
-	//  マップ衝突チェック(02_07 スライド13枚目)
+	//  マップ衝突チェック
 	CheckMapCollision(collisionMapInfo);
 
-	// worldTransform_.translation_ = Add(velocity_, worldTransform_.translation_);
 
-	// 移動(02_07 スライド36枚目)
+
+	// 移動
 	worldTransform_.translation_ += collisionMapInfo.move;
 
-	// 天井接触による落下開始(02_07 スライド38枚目)
+	// 天井接触による落下開始
 	if (collisionMapInfo.ceiling) {
 		velocity_.y = 0;
 	}
 
-	// 02_08 スライド27枚目 壁接触している場合の処理
+	// 壁接触している場合の処理
 	UpdateOnWall(collisionMapInfo);
 
 	// 接地判定
@@ -119,17 +93,17 @@ void Player::BehavoirRootUpdate() {
 		worldTransform_.rotation_.y = EaseInOut(destinationRotationY, turnFirstRotationY_, turnTimer_ / kTimeTurn);
 	}
 
-	// 02_14 18枚目 攻撃キーを押したら
+	//攻撃キーを押したら
 	if (Input::GetInstance()->TriggerKey(DIK_E)) {	
 		// 攻撃ビヘイビアをリクエスト
 		behaviorRequest_ = Behavior::kAttack;
 	}
 }
 
-// 02_14 16枚目 攻撃行動初期化
+// 攻撃行動初期化
 void Player::BehaviorAttackInitialize() {
 
-	// 02_14 19枚目 カウンター初期化
+	//  カウンター初期化
 	attackParameter_ = 0;
 
 	velocity_ = {};
@@ -138,29 +112,22 @@ void Player::BehaviorAttackInitialize() {
 	attackPhase_ = AttackPhase::kAnticipation;
 }
 
-// 02_14 8枚目 攻撃行動更新
+// 攻撃行動更新
 void Player::BehaviorAttackUpdate() {
 
-	// 02_14 19枚目 予備動作 → 25枚目で削除
-	//	attackParameter_++;
 
-	// 02_14 19枚目 既定の時間経過で攻撃終了して通常状態に戻す → 25枚目で削除
-	//	if (attackParameter_ >= 20.0f) {
-	//		behaviorRequest_ = Behavior::kRoot;
-	//	}
-
-	// 02_14 29枚目
+	
 	const Vector3 attackVelocity = {0.8f, 0.0f, 0.0f};
 
-	// 02_14 291枚目 攻撃動作用の速度
+	//  攻撃動作用の速度
 	Vector3 velocity{};
 
-	// 02_14 19枚目 予備動作
+	// 予備動作
 	attackParameter_++;
 
 	switch (attackPhase_) {
 	case AttackPhase::kAnticipation: // 溜め動作
-	// 02_14 26枚目
+	
 	default: {
 		velocity = {};
 		float t = static_cast<float>(attackParameter_) / kAnticipationTime;
@@ -175,7 +142,7 @@ void Player::BehaviorAttackUpdate() {
 		break;
 	}
 
-	// 02_14 27枚目
+	
 	case AttackPhase::kAction: { // 突進動作
 		if (lrDirection_ == LRDirection::kRight) {
 			velocity += attackVelocity;
@@ -194,7 +161,7 @@ void Player::BehaviorAttackUpdate() {
 		}
 	} 
 	break;
-	// 02_14 28枚目
+	
 	case AttackPhase::kRecovery: { // 余韻動作
 		velocity = {};
 		float t = static_cast<float>(attackParameter_) / kRecoveryTime;
@@ -311,7 +278,6 @@ void Player::InputMove() {
 	}
 }
 
-// 02_07 スライド13枚目
 void Player::CheckMapCollision(CollisionMapInfo& info) {
 
 	CheckMapCollisionUp(info);
@@ -465,7 +431,7 @@ void Player::UpdateOnGround(const CollisionMapInfo& info) {
 
 	} else {
 		// 着地フラグ
-		//  接地フラグ(スライド16）
+		//  接地フラグ
 		if (info.landing) {
 			// 接地状態に切り替える（落下を止める）
 			onGround_ = true;
@@ -477,7 +443,7 @@ void Player::UpdateOnGround(const CollisionMapInfo& info) {
 	}
 }
 
-// 02_08スライド27枚目 壁接地中の処理
+//  壁接地中の処理
 void Player::UpdateOnWall(const CollisionMapInfo& info) {
 
 	if (info.hitWall) {
@@ -611,8 +577,6 @@ void Player::Draw() {
 		}
 	}
 }
-
-// 02_10 10枚目
 Vector3 Player::GetWorldPosition() {
 
 	Vector3 worldPos;
@@ -623,7 +587,6 @@ Vector3 Player::GetWorldPosition() {
 	return worldPos;
 }
 
-// 02_10 14枚目
 AABB Player::GetAABB() {
 
 	Vector3 worldPos = GetWorldPosition();
@@ -635,17 +598,15 @@ AABB Player::GetAABB() {
 
 	return aabb;
 }
-
-// 02_10 21枚目
 void Player::OnCollision(const Enemy* enemy) {
 
-		// 02_15 20枚目
+	
 	if (IsAttack()) {
 		return; // 攻撃中はダメージ無効
 	}
 
 	(void)enemy;
 
-	// 02_12 12枚目 書き換え
+	// 書き換え
 	isDead_ = true;
 }

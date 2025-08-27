@@ -19,10 +19,6 @@ void CameraController::Updata() {
 
 	// 座標補間によりゆったり追従
 	camera_->translation_ = Lerp(camera_->translation_, targetCoordinates_, kInterpolationRate);
-
-	// 追従対象とオフセットからカメラの座標を計算
-	// camera_->translation_ = operator+(targetWorldTransform.translation_, targetOffset_);
-
 	// 追従対象が画面外に出ないように補正
 	camera_->translation_.x = std::max(camera_->translation_.x, targetCoordinates_.x + targetMargin.left);
 	camera_->translation_.x = std::min(camera_->translation_.x, targetCoordinates_.x + targetMargin.right);

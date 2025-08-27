@@ -8,17 +8,14 @@ using namespace KamataEngine;
 TitleScene* titleScene = nullptr;
 GameScene* gameScene = nullptr;
 
-// 02_12 25枚目(Scene sceneまで)
 enum class Scene {
 	kUnknown = 0,
 	kTitle,
 	kGame,
 };
 
-// 現在シーン（型）
 Scene scene = Scene::kUnknown;
 
-// 02_12 29枚目
 void ChangeScene() {
 
 	switch (scene) {
@@ -34,7 +31,7 @@ void ChangeScene() {
 		break;
 
 	case Scene::kGame:
-		// 02_12 30枚目
+	
 		if (gameScene->IsFinished()) {
 			// シーン変更
 			scene = Scene::kTitle;
@@ -47,7 +44,6 @@ void ChangeScene() {
 	}
 }
 
-// 02_12 31枚目
 void UpDataScene() {
 
 	switch (scene) {
@@ -60,7 +56,6 @@ void UpDataScene() {
 	}
 }
 
-// 02_12 32枚目
 void DrawScene() {
 	switch (scene) {
 	case Scene::kTitle:
@@ -110,7 +105,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	}
 
 	// ゲームシーンの解放
-	// 02_12 35枚目 各種解放
+	
 	delete titleScene;
 	delete gameScene;
 
